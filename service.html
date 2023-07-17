@@ -193,6 +193,7 @@
   <script>
     // Create a map centered on a specific location
     var map = L.map("map").setView([51.505, -0.09], 13);
+    var marker = null; // Variable to store the marker instance	
 
     // Add a tile layer to display the map tiles
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -200,8 +201,9 @@
       maxZoom: 18,
     }).addTo(map);
 
+    /*set marker*/
     // Add a marker for the user's location
-    map.locate({ setView: true, maxZoom: 16 });
+    /*map.locate({ setView: true, maxZoom: 16 });
     function onLocationFound(e) {
       L.marker(e.latlng).addTo(map);
       //console.log("onLocationFound called with location  " + e.latlng.toString());
@@ -209,11 +211,53 @@
       //save the lat/lng coordinates to the form field
       setLocationFormInput(e.latitude, e.longitude);
     }
-    map.on("locationfound", onLocationFound);
+    map.on("locationfound", onLocationFound);*/
 
-    // Add a search control for location search
-    L.Control.geocoder().addTo(map);
+    /*set new marker*/
+    // Function to handle the click event on the map when searching for a location	
+    function onMapClick(e) {
+      // Remove the previous marker from the map if it exists	
+      if (marker) {
+        map.removeLayer(marker);
+      }
+      // Create a new marker at the clicked location	
+      marker = L.marker(e.latlng).addTo(map);
+      // Pan the map to the marker's location	
+      map.panTo(marker.getLatLng());
+      // Save the lat/lng coordinates to the form fields	
+      setLocationFormInput(e.latlng.lat, e.latlng.lng);
+    }
+    // Add the click event listener to the map	
+    map.on("click", onMapClick);
 
+    // Function to handle the search control result	
+    function onGeocodeResult(result) {
+      // Get the geocoded location result	
+      var location = result.center;
+      // Remove the previous marker from the map if it exists	
+      if (marker) {
+        map.removeLayer(marker);
+      }
+      // Create a new marker at the geocoded location	
+      marker = L.marker(location).addTo(map);
+      // Pan the map to the marker's location	
+      map.panTo(marker.getLatLng());
+      // Save the lat/lng coordinates to the form fields	
+      setLocationFormInput(location.lat, location.lng);
+    }
+
+    /*set location search*/
+    // Add a search control for location search	
+    var geocoder = L.Control.geocoder({
+      geocoder: L.Control.Geocoder.nominatim(),
+      defaultMarkGeocode: false,
+    })
+      .on("markgeocode", function (event) {
+        onGeocodeResult(event.geocode);
+      })
+      .addTo(map);
+
+    /*set current location*/
     // Function to handle the click event on the button | current location | and update the map view accordingly
     document.getElementById('getLocationButton').addEventListener('click', function () {
       // Check if the Geolocation API is supported by the browser
@@ -228,8 +272,12 @@
             // Set the map view to the user's location
             map.setView([latitude, longitude], 13);
 
+            // Remove the previous marker from the map if it exists	
+            if (marker) {
+              map.removeLayer(marker);
+            }
             // Add a marker at the user's location
-            L.marker([latitude, longitude]).addTo(map);
+            marker = L.marker([latitude, longitude]).addTo(map);
 
             //save the lat/lng coordinates to the form field
             setLocationFormInput(latitude, longitude);
@@ -242,10 +290,12 @@
         console.log('Geolocation is not supported by this browser.');
       }
     });
+    document.getElementById('getLocationButton').click();
 
     //setTimeout(function () { }, 1000)
     //$('a[href="https://leafletjs.com"]').remove();
 
+    /*set form lat lon*/
     function setLocationFormInput(latitude, longitude) {
       debugger
       console.log("onLocationFound called with location  " + latitude + " and " + longitude);
