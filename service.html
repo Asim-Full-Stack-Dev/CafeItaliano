@@ -42,8 +42,13 @@
       display: none;
     }
 
-    div#map {
-      /*overflow: auto;*/
+    .leaflet-bottom {
+      bottom: 10px;
+      right: 5px;
+    }
+
+    .leaflet-control-attribution {
+      background: transparent !important;
     }
   </style>
   <!-- Map Work -->
@@ -107,16 +112,14 @@
               <div class="tm-address-box">
                 <h4 class="tm-info-title tm-text-success">Map Location</h4>
               </div>
-              <section id="service_form" action="" method="">
+              <form id="service_form" action="" method="">
                 <div class="form-group">
                   <!--Map Work-->
-                  <form id="search_form">
-                    <!-- <input type="text" id="searchInput" placeholder="Search location" required />
-                    <button type="submit">Search</button> -->
-                    <div class="input-group mb-3">
+
+                  <!-- <div class="input-group mb-3">
                       <div class="input-group-prepend">
                         <span class="input-group-text">
-                          <button class="btn btn-sm" type="button" id="getLocationButton"><i
+                          <button class="btn btn-sm current-location" type="button" id="getLocationButton"><i
                               class="fa fa-crosshairs"></i></span></button>
                       </div>
                       <input type="text" name="searchInput" id="searchInput" class="form-control h-auto">
@@ -126,11 +129,10 @@
                               class="fa fa-search"></i></button>
                         </span>
                       </div>
-                    </div>
-                  </form>
+                    </div> -->
 
-                  <input type="text" name="searchInput" id="searchInput" class="form-control"
-                    placeholder="Search location" required="" />
+                  <!-- <input type="text" name="searchInput" id="searchInput" class="form-control"
+                    placeholder="Search location" required="" /> -->
 
                   <input type="hidden" name="latitude" id="latitude" />
                   <input type="hidden" name="longitude" id="longitude" />
@@ -148,11 +150,12 @@
                 </div>
 
                 <div class="form-group tm-d-flex">
-                  <button type="submit" form="service_form" class="tm-btn tm-btn-success tm-btn-right">
+                  <button type="submit" form="service_form" id="service_form_btn"
+                    class="tm-btn tm-btn-success tm-btn-right">
                     Submit
                   </button>
                 </div>
-                </form>
+              </form>
             </div>
           </div>
         </div>
@@ -191,6 +194,7 @@
   </script>
   <!-- Map Work -->
   <script>
+
     // Create a map centered on a specific location
     var map = L.map("map").setView([51.505, -0.09], 13);
     var marker = null; // Variable to store the marker instance	
@@ -257,6 +261,22 @@
       })
       .addTo(map);
 
+    /*Add crosshair button to get current location*/
+    // Step 1: Create a new button element
+    var button = document.createElement("button");
+    // Step 2: Set the button's HTML structure and class
+    button.innerHTML =
+      '<i class="fa fa-crosshairs"></i>';
+    button.className = "btn btn-sm btn-light border-secondary current-location";
+    button.type = "button";
+    button.title = "Get my current location";
+    button.id = "getLocationButton";
+    // Step 3: Get reference to the target div
+    var targetDiv = document.getElementsByClassName("leaflet-control-attribution")[0];
+    // Step 4: Append the button to the div
+    targetDiv.appendChild(button);
+    targetDiv.firstChild.remove();
+
     /*set current location*/
     // Function to handle the click event on the button | current location | and update the map view accordingly
     document.getElementById('getLocationButton').addEventListener('click', function () {
@@ -297,76 +317,18 @@
 
     /*set form lat lon*/
     function setLocationFormInput(latitude, longitude) {
-      debugger
       console.log("onLocationFound called with location  " + latitude + " and " + longitude);
       $("#latitude").val(latitude);
       $("#latitude").val(longitude);
     }
+
+    //submit function and show alert with location information
+    $('#service_form').submit(function (event) {
+      alert("Location information available: Latitude " + $('#latitude').val() + " and Longitude " + $('#latitude').val() + ".");
+      return false;
+    });
+
   </script>
-
-  <!-- <script>
-    // Create a map centered on a specific location
-    var map = L.map('map').setView([51.505, -0.09], 13);
-
-    // Add a tile layer to display the map tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      //attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-      maxZoom: 18,
-    }).addTo(map);
-
-    // Function to handle form submission
-    document.getElementById('search_form').addEventListener('submit', function (e) {
-      e.preventDefault(); // Prevent default form submission
-
-      var searchValue = document.getElementById('searchInput').value; // Get the value from the search input
-
-      // Use a geocoding service to retrieve the location data
-      L.Control.Geocoder.nominatim().geocode(searchValue, function (results) {
-        if (results && results.length > 0) {
-          var latlng = results[0].center;
-          map.setView(latlng, 13); // Set the map view to the geocoded location
-          L.marker(latlng).addTo(map); // Add a marker at the geocoded location
-        } else {
-          alert('Location not found');
-        }
-      });
-    });
-
-  </script> -->
-
-  <!-- <script>
-    // Function to handle the click event on the button | current location | and update the map view accordingly
-    document.getElementById('getLocationButton').addEventListener('click', function () {
-      // Check if the Geolocation API is supported by the browser
-      if (navigator.geolocation) {
-      debugger
-      // Request the user's current location
-        navigator.geolocation.getCurrentPosition(
-          function (position) {
-            // Retrieve the latitude and longitude coordinates
-            var latitude = position.coords.latitude;
-            var longitude = position.coords.longitude;
-
-            // Do something with the coordinates, e.g., display them on a map
-            map = L.map('map').setView([latitude, longitude], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution:
-                'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-              maxZoom: 18,
-            }).addTo(map);
-            L.marker([latitude, longitude]).addTo(map);
-          },
-          function (error) {
-            console.log('Error occurred. Error code: ' + error.code + '. Error message: ' + error.message);
-          }
-        );
-      } else {
-        console.log('Geolocation is not supported by this browser.');
-      }
-    });
-
-  </script> -->
-
   <!-- Map Work -->
 </body>
 
